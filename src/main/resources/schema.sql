@@ -1,0 +1,28 @@
+DROP TABLE IF EXISTS users_roles;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS suburb_postcode;
+
+CREATE TABLE roles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE users_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+CREATE TABLE suburb_postcode (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    suburb VARCHAR(255) NOT NULL,
+    postcode VARCHAR(10) NOT NULL
+);

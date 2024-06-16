@@ -15,26 +15,29 @@ public class SuburbPostcodeController {
     private SuburbPostcodeService service;
 
     @GetMapping("/allSuburbsPostcodes")
-    public List<SuburbPostcodeCreateDTO> getAllSuburbs() {
-        return service.getAllSuburbs().stream()
+    public ResponseEntity<List<SuburbPostcodeCreateDTO>> getAllSuburbs() {
+        List<SuburbPostcodeCreateDTO> allSuburbs = service.getAllSuburbs().stream()
                 .map(SuburbPostcodeMapper::toDTO)
                 .collect(Collectors.toList());
+        return ResponseEntity.ok(allSuburbs);
     }
 
     @GetMapping("/suburb")
-    public ResponseEntity<SuburbPostcodeCreateDTO> getSuburbByPostcode(@RequestParam String postcode) {
-        return ResponseEntity.ok(SuburbPostcodeMapper.toDTO(service.getSuburbByPostcode(postcode)));
+    public ResponseEntity<SuburbPostcodeCreateDTO> getSuburbsByPostcode(@RequestParam String postcode) {
+        SuburbPostcodeCreateDTO dto = service.getSuburbsByPostcodeDTO(postcode);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/postcode")
-    public ResponseEntity<SuburbPostcodeCreateDTO> getPostcodeBySuburb(@RequestParam String suburb) {
-        return ResponseEntity.ok(SuburbPostcodeMapper.toDTO(service.getPostcodeBySuburb(suburb)));
+    public ResponseEntity<SuburbPostcodeCreateDTO> getPostcodesBySuburb(@RequestParam String suburb) {
+        SuburbPostcodeCreateDTO dto = service.getPostcodesBySuburbDTO(suburb);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/admin/add")
-    public SuburbPostcodeCreateDTO addSuburbPostcode(@RequestBody @Valid SuburbPostcodeCreateDTO suburbPostcodeDTO) {
-        SuburbPostcode suburbPostcode = SuburbPostcodeMapper.toEntity(suburbPostcodeDTO);
-        return SuburbPostcodeMapper.toDTO(service.addSuburbPostcode(suburbPostcode));
+    public ResponseEntity<Void> addSuburbPostcode(@RequestBody @Valid SuburbPostcodeCreateDTO suburbPostcodeDTO) {
+        service.addSuburbPostcode(suburbPostcodeDTO);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/admin/delete")
@@ -44,9 +47,12 @@ public class SuburbPostcodeController {
     }
 
     @PatchMapping("/admin/update")
-    public ResponseEntity<SuburbPostcodeUpdateDTO> updateSuburbPostcode(@RequestParam(required = false) String postcode, @RequestParam(required = false) String suburb, @RequestBody @Valid SuburbPostcodeUpdateDTO suburbPostcodeUpdateDTO) {
-        SuburbPostcode updatedSuburbPostcode = SuburbPostcodeMapper.toEntity(suburbPostcodeUpdateDTO);
-        SuburbPostcode updated = service.updateSuburbPostcode(postcode, suburb, updatedSuburbPostcode);
-        return ResponseEntity.ok(SuburbPostcodeMapper.toUpdateDTO(updated));
+    public ResponseEntity<SuburbPostcodeCreateDTO> updateSuburbOrPostcode(
+            @RequestParam(required = false) String postcode,
+            @RequestParam(required = false) String suburb,
+            @RequestBody @Valid SuburbPostcodeUpdateDTO updateDTO) {
+
+        SuburbPostcodeCreateDTO result = service.updateSuburbOrPostcode(postcode, suburb, updateDTO);
+        return ResponseEntity.ok(result);
     }
 }

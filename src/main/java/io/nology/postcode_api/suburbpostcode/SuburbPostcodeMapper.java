@@ -1,51 +1,46 @@
 package io.nology.postcode_api.suburbpostcode;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class SuburbPostcodeMapper {
 
-    public static SuburbPostcodeCreateDTO toDTO(SuburbPostcode suburbPostcode) {
+    public static SuburbPostcodeCreateDTO toDTO(Object entity) {
         SuburbPostcodeCreateDTO dto = new SuburbPostcodeCreateDTO();
-        dto.setId(suburbPostcode.getId());
-        dto.setSuburb(suburbPostcode.getSuburb());
-        dto.setPostcode(suburbPostcode.getPostcode());
+
+        if (entity instanceof Suburb) {
+            Suburb suburb = (Suburb) entity;
+            dto.setId(suburb.getId());
+            dto.setSuburbName(Set.of(suburb.getName()));
+            Set<String> postcodes = suburb.getPostcodes().stream()
+                    .map(Postcode::getCode)
+                    .collect(Collectors.toSet());
+            dto.setPostcode(postcodes);
+            dto.setCount(postcodes.size());
+        } else if (entity instanceof Postcode) {
+            Postcode postcode = (Postcode) entity;
+            dto.setId(postcode.getId());
+            Set<String> suburbNames = postcode.getSuburbs().stream()
+                    .map(Suburb::getName)
+                    .collect(Collectors.toSet());
+            dto.setSuburbName(suburbNames);
+            dto.setPostcode(Set.of(postcode.getCode()));
+            dto.setCount(suburbNames.size());
+        }
+
         return dto;
     }
 
-    public static SuburbPostcodeUpdateDTO toUpdateDTO(SuburbPostcode suburbPostcode) {
-        SuburbPostcodeUpdateDTO dto = new SuburbPostcodeUpdateDTO();
-        dto.setId(suburbPostcode.getId());
-        dto.setSuburb(suburbPostcode.getSuburb());
-        dto.setPostcode(suburbPostcode.getPostcode());
-        return dto;
+    public static Suburb toEntity(String suburbName, Set<Postcode> postcodes) {
+        Suburb suburb = new Suburb();
+        suburb.setName(suburbName);
+        suburb.setPostcodes(postcodes);
+        return suburb;
     }
 
-    public static SuburbPostcode toEntity(SuburbPostcodeCreateDTO dto) {
-        SuburbPostcode suburbPostcode = new SuburbPostcode();
-        suburbPostcode.setId(dto.getId());
-        if (dto.getSuburb() != null) {
-            suburbPostcode.setSuburb(capitalizeFirstLetter(dto.getSuburb().trim()));
-        } else {
-            suburbPostcode.setSuburb(null);
-        }
-        suburbPostcode.setPostcode(dto.getPostcode());
-        return suburbPostcode;
-    }
-
-    public static SuburbPostcode toEntity(SuburbPostcodeUpdateDTO dto) {
-        SuburbPostcode suburbPostcode = new SuburbPostcode();
-        suburbPostcode.setId(dto.getId());
-        if (dto.getSuburb() != null) {
-            suburbPostcode.setSuburb(capitalizeFirstLetter(dto.getSuburb().trim()));
-        } else {
-            suburbPostcode.setSuburb(null);
-        }
-        suburbPostcode.setPostcode(dto.getPostcode());
-        return suburbPostcode;
-    }
-
-    private static String capitalizeFirstLetter(String str) {
-        if (str == null || str.isEmpty()) {
-            return str;
-        }
-        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+    public static Postcode toEntity(String code) {
+        Postcode postcode = new Postcode();
+        postcode.setCode(code);
+        return postcode;
     }
 }

@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +30,7 @@ public class RoleController {
     }
 
     @PostMapping
-    public RoleDTO createRole(@RequestBody RoleDTO roleDTO) {
+    public RoleDTO createRole(@RequestBody @Valid RoleDTO roleDTO) {
         Role role = RoleMapper.toEntity(roleDTO);
         return RoleMapper.toDTO(roleService.createRole(role));
     }

@@ -1,4 +1,4 @@
-package io.nology.postcode_api.suburbpostcode;
+package io.nology.postcode_api.suburbpostcode.suburb;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;

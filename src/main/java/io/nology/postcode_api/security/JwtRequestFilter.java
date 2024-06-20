@@ -26,12 +26,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Override
+    // This method is called for every request that comes in
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         // The authorization header is where the JWT token is stored
         final String authorizationHeader = request.getHeader("Authorization");
 
-        // We extract the username and JWT token from the authorization header
+        
         String username = null;
         String jwt = null;
 

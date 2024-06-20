@@ -1,17 +1,25 @@
 package io.nology.postcode_api.suburbpostcode;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import java.util.Set;
+
+import io.nology.postcode_api.validation.ValidSuburbPostcode;
 
 public class SuburbPostcodeCreateDTO {
     private Long id;
 
-    @NotNull(message = "Suburb name is required")
+    @ValidSuburbPostcode(fieldType = "Suburb")    
     private Set<String> suburb;
 
-    @NotNull(message = "Postcodes are required")
-    private Set<@Pattern(regexp = "\\d{4}", message = "Postcode must be 4 digits") String> postcode;
+    @ValidSuburbPostcode(fieldType = "Postcode")
+    private Set<String> postcode;
+
+//     private Set<@Pattern(regexp = "^[a-zA-Z ]+$", message = "Suburb must contain only letters") 
+//     @NotBlank(message = "Suburb name cannot be blank") 
+//     String> suburb;
+
+// private Set<@Pattern(regexp = "\\d{4}", message = "Postcode must be 4 digits") 
+//     @NotBlank(message = "Postcode cannot be blank") 
+//     String> postcode;
 
     private int count;
     

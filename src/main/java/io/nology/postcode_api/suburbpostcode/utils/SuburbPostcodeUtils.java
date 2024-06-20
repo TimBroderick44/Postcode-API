@@ -1,7 +1,12 @@
-package io.nology.postcode_api.suburbpostcode;
+package io.nology.postcode_api.suburbpostcode.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import io.nology.postcode_api.suburbpostcode.postcode.Postcode;
+import io.nology.postcode_api.suburbpostcode.postcode.PostcodeRepository;
+import io.nology.postcode_api.suburbpostcode.suburb.Suburb;
+import io.nology.postcode_api.suburbpostcode.suburb.SuburbRepository;
 
 import java.util.Set;
 

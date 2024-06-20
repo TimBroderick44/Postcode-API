@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(customAccessDeniedHandler)
             )
             .sessionManagement(session -> session
+            // Stateless = no session is created, so no session information is stored
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 

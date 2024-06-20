@@ -1,6 +1,11 @@
 package io.nology.postcode_api.suburbpostcode;
 
 import io.nology.postcode_api.exceptions.NotFoundException;
+import io.nology.postcode_api.suburbpostcode.postcode.Postcode;
+import io.nology.postcode_api.suburbpostcode.postcode.PostcodeRepository;
+import io.nology.postcode_api.suburbpostcode.suburb.Suburb;
+import io.nology.postcode_api.suburbpostcode.suburb.SuburbRepository;
+import io.nology.postcode_api.suburbpostcode.utils.SuburbPostcodeUtils;
 import io.nology.postcode_api.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,27 +32,6 @@ public class SuburbPostcodeService {
         return suburbRepository.findAll();
     }
 
-    // public List<Postcode> getAllPostcodes() {
-    //     return postcodeRepository.findAll();
-    // }
-
-    // public Set<Suburb> getSuburbsByPostcode(String code) {
-    //     Postcode postcode = postcodeRepository.findByCode(code)
-    //             .orElseThrow(() -> new NotFoundException("Suburb not found for postcode: " + code));
-    //     return postcode.getSuburbs();
-    // }
-
-    // public Suburb getPostcodesBySuburb(String name) {
-    //     return suburbRepository.findByName(name)
-    //             .orElseThrow(() -> new NotFoundException("Postcode not found for suburb: " + name));
-    // }
-
-    // public Long getPostcodeIdByCode(String code) {
-    //     return postcodeRepository.findByCode(code)
-    //             .orElseThrow(() -> new NotFoundException("Postcode not found: " + code))
-    //             .getId();
-    // }
-
     public SuburbPostcodeCreateDTO getSuburbsByPostcodeDTO(String code) {
         Postcode postcode = postcodeRepository.findByCode(code)
                 .orElseThrow(() -> new NotFoundException("Postcode not found: " + code));
@@ -60,66 +44,37 @@ public class SuburbPostcodeService {
         return SuburbPostcodeMapper.toDTO(suburb);
     }
 
-    // @Transactional
-    // public void addSuburbPostcode(SuburbPostcodeCreateDTO dto) {
-    // Set<Postcode> postcodes = dto.getPostcode().stream()
-    // .map(code -> postcodeRepository.findByCode(code)
-    // .orElseGet(() ->
-    // postcodeRepository.save(SuburbPostcodeMapper.toEntity(code))))
-    // .collect(Collectors.toSet());
-
-    // for (String suburbName : dto.getSuburb()) {
-    // Optional<Suburb> existingSuburb = suburbRepository.findByName(suburbName);
-    // if (existingSuburb.isPresent()) {
-    // Suburb suburb = existingSuburb.get();
-    // suburb.getPostcodes().addAll(postcodes);
-    // suburbRepository.save(suburb);
-    // } else {
-    // Suburb suburb = SuburbPostcodeMapper.toEntity(suburbName, postcodes);
-    // suburbRepository.save(suburb);
-    // }
-    // }
-    // }
-
     @Transactional
     public void addSuburbPostcode(SuburbPostcodeCreateDTO dto) {
-        // Validate input
-        if (dto.getSuburb().isEmpty()) {
-            throw new BadRequestException("Suburb names cannot be empty");
-        }
-
-        if (dto.getPostcode().isEmpty()) {
-            throw new BadRequestException("Postcodes cannot be empty");
+        if (dto.getSuburb().isEmpty() || dto.getPostcode().isEmpty()) {
+            throw new BadRequestException("Suburb names and postcodes cannot be empty");
         }
 
         if (dto.getSuburb().size() > 1 && dto.getPostcode().size() > 1) {
             throw new BadRequestException("You cannot add several suburbs with several postcodes");
         }
 
-        Set<String> existingSuburbs = suburbRepository.findAll().stream()
-                .map(Suburb::getName)
-                .collect(Collectors.toSet());
+        for (String suburb : dto.getSuburb()) {
+            if (suburbRepository.findByName(suburb).isPresent()) {
+                throw new BadRequestException("Suburb already exists: " + suburb + ". Please update instead!");
+            }
+        }
 
-        Set<String> existingPostcodes = postcodeRepository.findAll().stream()
-                .map(Postcode::getCode)
-                .collect(Collectors.toSet());
-
-        StringBuilder errorMessage = new StringBuilder();
+        for (String postcode : dto.getPostcode()) {
+            if (postcodeRepository.findByCode(postcode).isPresent()) {
+                throw new BadRequestException("Postcode already exists: " + postcode + ". Please update instead!");
+            }
+        }
 
         Set<Postcode> postcodes = dto.getPostcode().stream()
-                .map(code -> {
-                    if (existingPostcodes.contains(code)) {
-                        errorMessage.append("The postcode: ").append(code).append(" already exists in the database. ");
-                    }
-                    return postcodeRepository.findByCode(code)
-                            .orElseGet(() -> postcodeRepository.save(SuburbPostcodeMapper.toEntity(code)));
-                })
+                .map(code -> postcodeRepository.findByCode(code)
+                        .orElseGet(() -> postcodeRepository.save(SuburbPostcodeMapper.toEntity(code))))
                 .collect(Collectors.toSet());
 
+        // Admin should update existing suburbs, etc. but just in case, if they somehow add a suburb that already exists,
+        // I won't override existing relationships, but add the postcodes to the existing suburb
+
         for (String suburbName : dto.getSuburb()) {
-            if (existingSuburbs.contains(suburbName)) {
-                errorMessage.append("The suburb: ").append(suburbName).append(" already exists in the database. ");
-            }
             Optional<Suburb> existingSuburb = suburbRepository.findByName(suburbName);
             if (existingSuburb.isPresent()) {
                 Suburb suburb = existingSuburb.get();
@@ -129,10 +84,6 @@ public class SuburbPostcodeService {
                 Suburb suburb = SuburbPostcodeMapper.toEntity(suburbName, postcodes);
                 suburbRepository.save(suburb);
             }
-        }
-
-        if (errorMessage.length() > 0) {
-            throw new BadRequestException(errorMessage.toString());
         }
     }
 
@@ -154,8 +105,7 @@ public class SuburbPostcodeService {
     }
 
     @Transactional
-    public SuburbPostcodeCreateDTO updateSuburbOrPostcode(String postcodeCode, String suburbName,
-            SuburbPostcodeUpdateDTO dto) {
+    public SuburbPostcodeCreateDTO updateSuburbOrPostcode(String postcodeCode, String suburbName, SuburbPostcodeUpdateDTO dto) {
         if (suburbName != null && !suburbName.isEmpty()) {
             return updateSuburb(suburbName, dto);
         } else if (postcodeCode != null && !postcodeCode.isEmpty()) {
@@ -169,102 +119,46 @@ public class SuburbPostcodeService {
         Suburb existingSuburb = suburbRepository.findByName(suburbName)
                 .orElseThrow(() -> new NotFoundException("Suburb not found: " + suburbName));
 
-        boolean isUpdated = false;
-
-        if (updatePostcodesForSuburb(existingSuburb, dto.getPostcode())) {
-            isUpdated = true;
+        if (dto.getPostcode() != null && !dto.getPostcode().isEmpty()) {
+            Set<Postcode> newPostcodes = dto.getPostcode().stream()
+                    .map(code -> postcodeRepository.findByCode(code)
+                            .orElseGet(() -> postcodeRepository.save(SuburbPostcodeMapper.toEntity(code))))
+                    .collect(Collectors.toSet());
+            existingSuburb.setPostcodes(newPostcodes);
         }
-        if (updateSuburbName(existingSuburb, dto.getSuburb())) {
-            isUpdated = true;
-        }
 
-        if (!isUpdated) {
-            throw new BadRequestException("No changes were made.");
+        if (dto.getSuburb() != null && !dto.getSuburb().isEmpty()) {
+            if (dto.getSuburb().size() > 1) {
+                throw new BadRequestException("You cannot add additional suburbs to a suburb. Update the postcode instead.");
+            }
+            // Gets the first element of the set and sets it with the new name
+            existingSuburb.setName(dto.getSuburb().iterator().next());
         }
 
         Suburb updatedSuburb = suburbRepository.save(existingSuburb);
         return SuburbPostcodeMapper.toDTO(updatedSuburb);
     }
 
-    private boolean updatePostcodesForSuburb(Suburb suburb, Set<String> postcodeCodes) {
-        if (postcodeCodes != null && !postcodeCodes.isEmpty()) {
-            Set<Postcode> oldPostcodes = suburb.getPostcodes();
-            Set<Postcode> newPostcodes = postcodeCodes.stream()
-                    .map(code -> postcodeRepository.findByCode(code)
-                            .orElseGet(() -> postcodeRepository.save(SuburbPostcodeMapper.toEntity(code))))
-                    .collect(Collectors.toSet());
-            if (!oldPostcodes.equals(newPostcodes)) {
-                suburb.setPostcodes(newPostcodes);
-                utils.removeOrphanedPostcodes(oldPostcodes, suburb);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean updateSuburbName(Suburb suburb, Set<String> suburbNames) {
-        if (suburbNames != null && !suburbNames.isEmpty()) {
-            if (suburbNames.size() > 1) {
-                throw new BadRequestException("You cannot add suburbs - only edit the original value.");
-            }
-            String newSuburbName = suburbNames.iterator().next();
-            if (!newSuburbName.equals(suburb.getName())) {
-                suburb.setName(newSuburbName);
-                return true;
-            }
-        }
-        return false;
-    }
-
     private SuburbPostcodeCreateDTO updatePostcode(String postcodeCode, SuburbPostcodeUpdateDTO dto) {
         Postcode existingPostcode = postcodeRepository.findByCode(postcodeCode)
                 .orElseThrow(() -> new NotFoundException("Postcode not found: " + postcodeCode));
 
-        boolean isUpdated = false;
-
-        if (updatePostcodeCode(existingPostcode, dto.getPostcode())) {
-            isUpdated = true;
-        }
-        if (updateSuburbsForPostcode(existingPostcode, dto.getSuburb())) {
-            isUpdated = true;
+        if (dto.getPostcode() != null && !dto.getPostcode().isEmpty()) {
+            if (dto.getPostcode().size() > 1) {
+                throw new BadRequestException("You cannot add additional postcodes to a postcode. Update the suburb instead.");
+            }
+            existingPostcode.setCode(dto.getPostcode().iterator().next());
         }
 
-        if (!isUpdated) {
-            throw new BadRequestException("No changes were made.");
+        if (dto.getSuburb() != null && !dto.getSuburb().isEmpty()) {
+            Set<Suburb> newSuburbs = dto.getSuburb().stream()
+                    .map(name -> suburbRepository.findByName(name)
+                            .orElseGet(() -> suburbRepository.save(SuburbPostcodeMapper.toEntity(name, Set.of(existingPostcode)))))
+                    .collect(Collectors.toSet());
+            existingPostcode.setSuburbs(newSuburbs);
         }
 
         Postcode updatedPostcode = postcodeRepository.save(existingPostcode);
         return SuburbPostcodeMapper.toDTO(updatedPostcode);
-    }
-
-    private boolean updatePostcodeCode(Postcode postcode, Set<String> postcodeCodes) {
-        if (postcodeCodes != null && !postcodeCodes.isEmpty()) {
-            if (postcodeCodes.size() > 1) {
-                throw new BadRequestException("You cannot add postcodes - only edit the original value.");
-            }
-            String newPostcode = postcodeCodes.iterator().next();
-            if (!newPostcode.equals(postcode.getCode())) {
-                postcode.setCode(newPostcode);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean updateSuburbsForPostcode(Postcode postcode, Set<String> suburbNames) {
-        if (suburbNames != null && !suburbNames.isEmpty()) {
-            Set<Suburb> oldSuburbs = postcode.getSuburbs();
-            Set<Suburb> newSuburbs = suburbNames.stream()
-                    .map(name -> suburbRepository.findByName(name)
-                            .orElseGet(
-                                    () -> suburbRepository.save(SuburbPostcodeMapper.toEntity(name, Set.of(postcode)))))
-                    .collect(Collectors.toSet());
-            if (!oldSuburbs.equals(newSuburbs)) {
-                postcode.setSuburbs(newSuburbs);
-                utils.removeOrphanedSuburbs(oldSuburbs, postcode);
-                return true;
-            }
-        }
-        return false;
     }
 }

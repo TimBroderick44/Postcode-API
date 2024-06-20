@@ -29,7 +29,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleCustomException(BaseException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", ex.getMessage());
-        response.put("status", ex.getStatusCode().toString());
         return new ResponseEntity<>(response, ex.getStatusCode());
     }
 

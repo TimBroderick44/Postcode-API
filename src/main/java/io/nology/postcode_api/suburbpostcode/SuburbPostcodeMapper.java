@@ -3,6 +3,9 @@ package io.nology.postcode_api.suburbpostcode;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.nology.postcode_api.suburbpostcode.postcode.Postcode;
+import io.nology.postcode_api.suburbpostcode.suburb.Suburb;
+
 public class SuburbPostcodeMapper {
 
     public static SuburbPostcodeCreateDTO toDTO(Object entity) {
@@ -26,6 +29,8 @@ public class SuburbPostcodeMapper {
             dto.setSuburbName(suburbNames);
             dto.setPostcode(Set.of(postcode.getCode()));
             dto.setCount(suburbNames.size());
+        } else {
+            throw new IllegalArgumentException("Invalid entity type");
         }
 
         return dto;

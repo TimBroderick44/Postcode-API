@@ -1,7 +1,10 @@
-package io.nology.postcode_api.suburbpostcode;
+package io.nology.postcode_api.suburbpostcode.suburb;
 
 import jakarta.persistence.*;
 import java.util.Set;
+
+import io.nology.postcode_api.suburbpostcode.postcode.Postcode;
+
 import java.util.HashSet;
 
 @Entity

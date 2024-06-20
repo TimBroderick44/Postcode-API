@@ -30,7 +30,7 @@ public class UserController {
         return UserMapper.toDTO(userService.getUserById(id));
     }
 
-    @PostMapping("/admin/createUser")
+    @PostMapping("/createUser")
     public UserDTO createUser(@RequestBody @Valid UserDTO userDTO) {
         User user = UserMapper.toEntity(userDTO);
         return UserMapper.toDTO(userService.createUser(user));

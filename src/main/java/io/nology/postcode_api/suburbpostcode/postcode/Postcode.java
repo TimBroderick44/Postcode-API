@@ -1,7 +1,10 @@
-package io.nology.postcode_api.suburbpostcode;
+package io.nology.postcode_api.suburbpostcode.postcode;
 
 import jakarta.persistence.*;
 import java.util.Set;
+
+import io.nology.postcode_api.suburbpostcode.suburb.Suburb;
+
 import java.util.HashSet;
 
 @Entity
@@ -15,7 +18,7 @@ public class Postcode {
     private String code;
 
     @ManyToMany(mappedBy = "postcodes", fetch = FetchType.EAGER)
-    private Set<Suburb> suburbs = new HashSet<>();
+    private Set<Suburb> suburb = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -34,10 +37,10 @@ public class Postcode {
     }
 
     public Set<Suburb> getSuburbs() {
-        return suburbs;
+        return suburb;
     }
 
-    public void setSuburbs(Set<Suburb> suburbs) {
-        this.suburbs = suburbs;
+    public void setSuburbs(Set<Suburb> suburb) {
+        this.suburb = suburb;
     }
 }

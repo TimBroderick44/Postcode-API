@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -29,7 +28,7 @@ public class SecurityConfig {
     private CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserAuthenticationService userAuthenticationService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -42,7 +41,7 @@ public class SecurityConfig {
         // From the httpSecurity object, we can get the AuthenticationManagerBuilder object
         AuthenticationManagerBuilder authenticationManagerBuilder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
         // We then configure the AuthenticationManagerBuilder object to use the UserDetailsService and BCryptPasswordEncoder
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+        authenticationManagerBuilder.userDetailsService(userAuthenticationService).passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 

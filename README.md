@@ -118,8 +118,8 @@ In previous projects, I had included error handling; however, in this project, i
 
 ## What I still need to do:
 
--   [ ] Implement proper testing
--   [ ] Create a front end to show off its functionality
+-   [x] Implement proper testing
+-   [x] Create a front end to show off its functionality
 -   [ ] Allow for pagination of results 
 -   [ ] Allow for dynamic filtering (i.e. allow for the user to decide what specific results they want back)
 -   [ ] Allow for batch requests

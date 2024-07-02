@@ -1,5 +1,8 @@
 # Where Am I?
 
+### NOTE:
+*This is a Springboot backend for my 'Where am I?' project and requires access to the [frontend here](https://github.com/TimBroderick44/WhereAmI-Frontend).
+
 This is a simple backend that allows for authenticated users to look up the postcodes of suburbs and vice versa. 
 
 It also allows for admin users to perform a variety of other tasks such as:
@@ -77,7 +80,7 @@ mvn clean install
 ```   
 http://localhost:8080/allSuburbsPostcodes (or http://127.0.0.1:8080/allSuburbsPostcodes)
 ```
-9.  Enjoy! Test the endpoints with Postman and have fun! 
+9. Follow the steps [here](https://github.com/TimBroderick44/WhereAmI-Frontend) and set up the frontend. 
 
 ## What did I use to create it?
 
